@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_field_operation_worker,field.operation worker,model_field_operation,group_field_worker,1,1,0,0
+access_field_operation_dispatcher,field.operation dispatcher,model_field_operation,group_field_dispatcher,1,1,1,0
+access_field_operation_manager,field.operation manager,model_field_operation,group_field_manager,1,1,1,1
+access_field_operation_type_worker,field.operation.type worker read,model_field_operation_type,group_field_worker,1,0,0,0
+access_field_operation_type_dispatcher,field.operation.type dispatcher read,model_field_operation_type,group_field_dispatcher,1,0,0,0
+access_field_operation_type_manager,field.operation.type manager,model_field_operation_type,group_field_manager,1,1,1,1
+access_field_operation_bonus_rule_dispatcher,field.operation.bonus.rule dispatcher read,model_field_operation_bonus_rule,group_field_dispatcher,1,0,0,0
+access_field_operation_bonus_rule_manager,field.operation.bonus.rule manager,model_field_operation_bonus_rule,group_field_manager,1,1,1,1

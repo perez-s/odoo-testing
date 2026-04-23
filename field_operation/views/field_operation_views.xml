@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================= -->
+    <!-- field.operation                                                -->
+    <!-- ============================================================= -->
+
+    <record id="view_field_operation_list" model="ir.ui.view">
+        <field name="name">field.operation.list</field>
+        <field name="model">field.operation</field>
+        <field name="arch" type="xml">
+            <list string="Field Operations" decoration-muted="state == 'closed'" decoration-info="state == 'in_progress'" decoration-success="state == 'done'">
+                <field name="name"/>
+                <field name="date_planned"/>
+                <field name="partner_id"/>
+                <field name="operation_type_id"/>
+                <field name="worker_id"/>
+                <field name="quantity"/>
+                <field name="uom_id"/>
+                <field name="total_pay" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge" decoration-info="state == 'in_progress'" decoration-success="state in ('done','closed')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_field_operation_form" model="ir.ui.view">
+        <field name="name">field.operation.form</field>
+        <field name="model">field.operation</field>
+        <field name="arch" type="xml">
+            <form string="Field Operation">
+                <header>
+                    <button name="action_assign" type="object" string="Assign" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_start" type="object" string="Start" class="oe_highlight" invisible="state != 'assigned'"/>
+                    <button name="action_finish" type="object" string="Finish" class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_close" type="object" string="Close" class="oe_highlight" invisible="state != 'done'"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft" invisible="state not in ('assigned','done')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,assigned,in_progress,done,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="site_address"/>
+                            <field name="operation_type_id"/>
+                            <field name="uom_id"/>
+                        </group>
+                        <group>
+                            <field name="worker_id"/>
+                            <field name="dispatcher_id"/>
+                            <field name="date_planned"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Execution">
+                            <group>
+                                <group>
+                                    <field name="start_datetime"/>
+                                    <field name="end_datetime"/>
+                                </group>
+                                <group>
+                                    <field name="quantity" readonly="state in ('draft','closed')"/>
+                                    <field name="flat_rate"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Pay">
+                            <group>
+                                <field name="flat_pay"/>
+                                <field name="bonus_amount"/>
+                                <field name="total_pay" class="oe_subtotal_footer_separator"/>
+                            </group>
+                        </page>
+                        <page string="Notes">
+                            <field name="note" placeholder="Internal notes…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_field_operation_kanban" model="ir.ui.view">
+        <field name="name">field.operation.kanban</field>
+        <field name="model">field.operation</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="state"/>
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_record_top">
+                                <strong><field name="name"/></strong>
+                                <span class="float-end"><field name="date_planned"/></span>
+                            </div>
+                            <div><field name="partner_id"/></div>
+                            <div><field name="operation_type_id"/> &#8226; <field name="worker_id"/></div>
+                            <div t-if="record.quantity.raw_value">
+                                <field name="quantity"/> <field name="uom_id"/> &#8226;
+                                <field name="total_pay" widget="monetary"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_field_operation_search" model="ir.ui.view">
+        <field name="name">field.operation.search</field>
+        <field name="model">field.operation</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="worker_id"/>
+                <field name="operation_type_id"/>
+                <filter string="My Operations" name="my_ops" domain="[('worker_id.user_id', '=', uid)]"/>
+                <filter string="Unassigned" name="unassigned" domain="[('state', '=', 'draft')]"/>
+                <filter string="Open" name="open" domain="[('state', 'in', ('assigned','in_progress','done'))]"/>
+                <filter string="Closed" name="closed" domain="[('state', '=', 'closed')]"/>
+                <separator/>
+                <filter string="Planned Today" name="today" domain="[('date_planned', '=', context_today())]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Worker" name="group_worker" context="{'group_by': 'worker_id'}"/>
+                    <filter string="Operation Type" name="group_type" context="{'group_by': 'operation_type_id'}"/>
+                    <filter string="Planned Date" name="group_date" context="{'group_by': 'date_planned'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_field_operation" model="ir.actions.act_window">
+        <field name="name">Field Operations</field>
+        <field name="res_model">field.operation</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_field_operation_search"/>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first field operation.</p>
+        </field>
+    </record>
+
+    <!-- ============================================================= -->
+    <!-- field.operation.type                                           -->
+    <!-- ============================================================= -->
+
+    <record id="view_field_operation_type_list" model="ir.ui.view">
+        <field name="name">field.operation.type.list</field>
+        <field name="model">field.operation.type</field>
+        <field name="arch" type="xml">
+            <list string="Operation Types">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="uom_id"/>
+                <field name="flat_rate"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_field_operation_type_form" model="ir.ui.view">
+        <field name="name">field.operation.type.form</field>
+        <field name="model">field.operation.type</field>
+        <field name="arch" type="xml">
+            <form string="Operation Type">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Grass Cutting"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="uom_id"/>
+                            <field name="flat_rate"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Bonus Rules">
+                            <div class="alert alert-info" role="alert">
+                                Bonus rules are captured here but not yet applied to pay. Activation lands in Phase 2.
+                            </div>
+                            <field name="bonus_rule_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="threshold_quantity"/>
+                                    <field name="bonus_type"/>
+                                    <field name="bonus_value"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_field_operation_type" model="ir.actions.act_window">
+        <field name="name">Operation Types</field>
+        <field name="res_model">field.operation.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ============================================================= -->
+    <!-- Menus                                                          -->
+    <!-- ============================================================= -->
+
+    <menuitem id="menu_field_operation_root"
+              name="Field Operation"
+              web_icon="field_operation,static/description/icon.png"
+              sequence="95"
+              groups="group_field_worker"/>
+
+    <menuitem id="menu_field_operation_ops"
+              name="Operations"
+              parent="menu_field_operation_root"
+              action="action_field_operation"
+              sequence="10"/>
+
+    <menuitem id="menu_field_operation_config"
+              name="Configuration"
+              parent="menu_field_operation_root"
+              sequence="90"
+              groups="group_field_manager"/>
+
+    <menuitem id="menu_field_operation_type"
+              name="Operation Types"
+              parent="menu_field_operation_config"
+              action="action_field_operation_type"
+              sequence="10"/>
+
+</odoo>
