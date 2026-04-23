@@ -137,15 +137,47 @@
         </field>
     </record>
 
+    <record id="view_field_operation_pivot" model="ir.ui.view">
+        <field name="name">field.operation.pivot</field>
+        <field name="model">field.operation</field>
+        <field name="arch" type="xml">
+            <pivot string="Field Operations" sample="1">
+                <field name="worker_id" type="row"/>
+                <field name="operation_type_id" type="col"/>
+                <field name="quantity" type="measure"/>
+                <field name="total_pay" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_field_operation_graph" model="ir.ui.view">
+        <field name="name">field.operation.graph</field>
+        <field name="model">field.operation</field>
+        <field name="arch" type="xml">
+            <graph string="Field Operations" type="bar" sample="1">
+                <field name="operation_type_id"/>
+                <field name="quantity" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
     <record id="action_field_operation" model="ir.actions.act_window">
         <field name="name">Field Operations</field>
         <field name="res_model">field.operation</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,list,form,pivot,graph</field>
         <field name="search_view_id" ref="view_field_operation_search"/>
         <field name="context">{'search_default_open': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first field operation.</p>
         </field>
+    </record>
+
+    <record id="action_field_operation_report" model="ir.actions.act_window">
+        <field name="name">Analysis</field>
+        <field name="res_model">field.operation</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="view_field_operation_search"/>
+        <field name="context">{'search_default_group_worker': 1, 'search_default_group_type': 1}</field>
     </record>
 
     <!-- ============================================================= -->
@@ -233,6 +265,13 @@
               parent="menu_field_operation_root"
               action="action_field_operation"
               sequence="10"/>
+
+    <menuitem id="menu_field_operation_report"
+              name="Reporting"
+              parent="menu_field_operation_root"
+              action="action_field_operation_report"
+              sequence="50"
+              groups="group_field_dispatcher"/>
 
     <menuitem id="menu_field_operation_config"
               name="Configuration"
